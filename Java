@@ -1,0 +1,81 @@
+static void PrepararComandes() throws SQLException, IOException {
+
+        String proveidorAct = null;
+        String proveidorAct2 = null;
+
+        String consulta1 = String.format(
+                "select A.nom_prov, B.id_producte, C.nom_prod,C.quantitat from proveidor A, porta B, producte C where B.id_proveidor=A.id and B.id_producte=C.id and C.quantitat<50 order by A.nom_prov;");
+        // System.out.println(consulta1);
+        PreparedStatement ps1 = connexioBD.prepareStatement(consulta1);
+        ps1.executeQuery();
+        ResultSet rs1 = ps1.executeQuery();
+        int numProveidors = 0;
+        int numProductes = 0;
+        while (rs1.next()) {
+
+            String CREACIOCOMANDES = null;
+            proveidorAct = rs1.getString("A.nom_prov");
+
+            LocalDate data = LocalDate.now();
+            CREACIOCOMANDES = "Comandes Generades/" + proveidorAct + data + ".txt";
+
+            if (!proveidorAct.equals(proveidorAct2)) {
+                // System.out.println("canvi de proveidor a " + proveidorAct);
+
+                arrayNom_proveidor[numProveidors] = proveidorAct;
+                numProveidors++;
+                numProductes = 0;
+
+                try {
+
+                    File myObj = new File(CREACIOCOMANDES);
+                    if (myObj.createNewFile()) {
+
+                        System.out.println("File creat: " + myObj.getName());
+
+                        FileOutputStream f = new FileOutputStream(CREACIOCOMANDES, true);
+
+                        String informacioEmpresa = "|***************************COMANDA************************************|\n|Nom Brico Depo							       |\n|Adreça Tarrega 25200						       |\n|Telefon 626262626						       |\n|----------------------------------------------------------------------|\n";
+                        System.out.println(informacioEmpresa);
+                        byte[] byteArr = informacioEmpresa.getBytes(); // converting string into byte array
+                        f.write(byteArr);
+                        f.close();
+
+                    }
+
+                } catch (IOException e) {
+                    System.out.println("Hi ha un error.");
+                    e.printStackTrace();
+                }
+
+            }
+
+            // sempre demanarem tantes quantitats per tenir 500 unitats de estoc
+            int quantitat = rs1.getInt("C.quantitat");
+            int estock = 500 - quantitat;
+
+            numProveidors--;
+            
+            numProductes++;
+            arrayNum_productes[numProveidors] = numProductes; // del if la variable numProveidors es per 1 mes gran que necessitem per això he ficat una resta si no ficarà en la posició +1 que necessitem
+
+            numProveidors++; // i aqui retorno el valor de la variable que ve del IF
+            FileOutputStream f = new FileOutputStream(CREACIOCOMANDES, true);
+            String informacio = (" " + rs1.getInt("B.id_producte") + "\t \t \t" + rs1.getString("C.nom_prod") + "\t \t "
+                    + estock + "\n");
+
+            byte[] byteArr = informacio.getBytes(); // converting string into byte array
+            f.write(byteArr);
+            f.close();
+
+            System.out.println(informacio);
+
+            String format = "%-20s %5d\n";
+            System.out.format(format, "test", 1);
+            System.out.format(format, "test2213213213213", 20);
+            System.out.format(format, "test3", 5000);
+
+            proveidorAct2 = proveidorAct;
+        }
+
+    }
